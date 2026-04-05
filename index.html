@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4f4f4">
+  <link rel="icon" href="icon-192.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Catch the Box</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #222;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 1.8rem;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .game-area {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #ffffff;
+      border: 2px solid #222;
+      border-radius: 8px;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    .box {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      background: #2f80ed;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .message {
+      margin-top: 12px;
+      min-height: 24px;
+      font-size: 1rem;
+    }
+
+    .restart-btn {
+      display: none;
+      margin-top: 12px;
+      padding: 10px 16px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      background: #222;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .restart-btn.show {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>Catch the Box</h1>
+
+    <div class="stats">
+      <div>Score: <span id="score">0</span></div>
+      <div>High Score: <span id="highScore">0</span></div>
+      <div>Time: <span id="timer">20</span>s</div>
+    </div>
+
+    <div class="game-area" id="gameArea">
+      <button class="box" id="box" aria-label="Catch the box"></button>
+    </div>
+
+    <div class="message" id="message"></div>
+    <button class="restart-btn" id="restartBtn">Restart</button>
+  </main>
+
+  <script>
+    const gameArea = document.getElementById("gameArea");
+    const box = document.getElementById("box");
+    const scoreText = document.getElementById("score");
+    const highScoreText = document.getElementById("highScore");
+    const timerText = document.getElementById("timer");
+    const message = document.getElementById("message");
+    const restartBtn = document.getElementById("restartBtn");
+
+    const gameDuration = 20;
+    const boxSize = 56;
+    const highScoreKey = "catchTheBoxHighScore";
+
+    let score = 0;
+    let timeLeft = gameDuration;
+    let timerId = null;
+    let gameRunning = false;
+    let highScore = Number(localStorage.getItem(highScoreKey)) || 0;
+
+    highScoreText.textContent = highScore;
+
+    function moveBox() {
+      const maxX = gameArea.clientWidth - boxSize;
+      const maxY = gameArea.clientHeight - boxSize;
+
+      const randomX = Math.floor(Math.random() * (maxX + 1));
+      const randomY = Math.floor(Math.random() * (maxY + 1));
+
+      box.style.left = randomX + "px";
+      box.style.top = randomY + "px";
+    }
+
+    function endGame() {
+      gameRunning = false;
+      clearInterval(timerId);
+
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem(highScoreKey, highScore);
+        highScoreText.textContent = highScore;
+      }
+
+      box.style.display = "none";
+      restartBtn.classList.add("show");
+      message.textContent = "Game over! Final score: " + score;
+    }
+
+    function startGame() {
+      score = 0;
+      timeLeft = gameDuration;
+      gameRunning = true;
+
+      scoreText.textContent = score;
+      timerText.textContent = timeLeft;
+      message.textContent = "";
+      restartBtn.classList.remove("show");
+      box.style.display = "block";
+
+      moveBox();
+
+      clearInterval(timerId);
+      timerId = setInterval(function () {
+        timeLeft -= 1;
+        timerText.textContent = timeLeft;
+
+        if (timeLeft === 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    box.addEventListener("click", function () {
+      if (!gameRunning) {
+        return;
+      }
+
+      score += 1;
+      scoreText.textContent = score;
+      moveBox();
+    });
+
+    restartBtn.addEventListener("click", startGame);
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js");
+      });
+    }
+
+    startGame();
+  </script>
+</body>
+</html>
