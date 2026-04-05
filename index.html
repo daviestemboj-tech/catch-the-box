@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4f4f4">
+  <link rel="icon" href="icon-192.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Catch the Box</title>
+  <style>
+    :root {
+      --sky-top: #87dcff;
+      --sky-bottom: #fff6ad;
+      --card-top: #ffffff;
+      --card-bottom: #fff0fb;
+      --ink: #25304a;
+      --pink: #ff5fa2;
+      --yellow: #ffd84d;
+      --blue: #4f9cff;
+      --mint: #87e7c4;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      background: linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
+      color: var(--ink);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      background: linear-gradient(180deg, var(--card-top), var(--card-bottom));
+      border: 4px solid #ffffff;
+      border-radius: 28px;
+      padding: 22px 18px 24px;
+      box-shadow: 0 18px 40px rgba(67, 79, 122, 0.22);
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: 2rem;
+      color: #ff4f93;
+      letter-spacing: 0.04em;
+      text-shadow: 0 3px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .start-screen {
+      padding: 18px 8px 8px;
+    }
+
+    .start-text {
+      margin: 0 0 18px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #5a6280;
+    }
+
+    .difficulty-title {
+      margin: 0 0 10px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #5a6280;
+    }
+
+    .difficulty-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .difficulty-option input {
+      display: none;
+    }
+
+    .difficulty-label {
+      display: block;
+      padding: 10px 8px;
+      background: #ffffff;
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      border-radius: 18px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #5f6f96;
+      box-shadow: 0 8px 18px rgba(86, 101, 145, 0.14);
+      cursor: pointer;
+    }
+
+    .difficulty-option input:checked + .difficulty-label {
+      background: linear-gradient(180deg, #ffd84d, #ffbc42);
+      color: #5c4300;
+    }
+
+    .game-screen {
+      display: none;
+    }
+
+    .game-screen.show {
+      display: block;
+    }
+
+    .game-over-screen {
+      display: none;
+      padding-top: 6px;
+    }
+
+    .game-over-screen.show {
+      display: block;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 10px 8px;
+      box-shadow: 0 8px 18px rgba(86, 101, 145, 0.14);
+      border: 2px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .stat-label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.78rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #5f6f96;
+    }
+
+    .stat-value {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--ink);
+    }
+
+    .game-area {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background:
+        radial-gradient(circle at top left, #ffffff, transparent 35%),
+        linear-gradient(180deg, #dff7ff, #ffffff 42%, #fff5c9);
+      border: 4px solid #ffffff;
+      border-radius: 24px;
+      overflow: hidden;
+      touch-action: manipulation;
+      box-shadow: inset 0 0 0 3px rgba(79, 156, 255, 0.12);
+    }
+
+    .box {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(180deg, #ff8fb8, var(--pink));
+      border: 3px solid #ffffff;
+      border-radius: 16px;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(255, 95, 162, 0.35);
+    }
+
+    .message {
+      margin-top: 14px;
+      min-height: 28px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #5a6280;
+    }
+
+    .result-card {
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 18px 14px;
+      margin-top: 14px;
+      box-shadow: 0 8px 18px rgba(86, 101, 145, 0.14);
+      border: 2px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .result-title {
+      margin: 0 0 12px;
+      font-size: 1.5rem;
+      color: #ff4f93;
+    }
+
+    .result-line {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #5a6280;
+    }
+
+    .celebration-message {
+      display: none;
+      margin: 0 0 12px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      font-size: 1rem;
+      font-weight: bold;
+      background: linear-gradient(180deg, #fff7b8, #ffd84d);
+      color: #6b5200;
+      box-shadow: 0 8px 18px rgba(255, 216, 77, 0.28);
+    }
+
+    .celebration-message.show {
+      display: block;
+    }
+
+    .high-score-popup {
+      display: none;
+      margin: 0 0 14px;
+      padding: 14px 16px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #ff92c6, #ff5fa2);
+      color: #ffffff;
+      font-size: 1.05rem;
+      font-weight: bold;
+      box-shadow: 0 12px 24px rgba(255, 95, 162, 0.32);
+    }
+
+    .high-score-popup.show {
+      display: block;
+    }
+
+    .result-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .restart-btn {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--yellow), #ffbc42);
+      color: #5c4300;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 10px 18px rgba(255, 188, 66, 0.35);
+    }
+
+    .start-btn {
+      display: inline-block;
+    }
+
+    .restart-btn.show {
+      display: inline-block;
+    }
+
+    .menu-btn,
+    .next-level-btn,
+    .play-again-btn {
+      display: inline-block;
+      width: 100%;
+      margin-top: 0;
+    }
+
+    .menu-btn {
+      background: linear-gradient(180deg, #8fdcff, #5ec7ff);
+      color: #124a6b;
+      box-shadow: 0 10px 18px rgba(94, 199, 255, 0.35);
+    }
+
+    .next-level-btn {
+      display: none;
+      background: linear-gradient(180deg, #87e7c4, #57d6a6);
+      color: #125441;
+      box-shadow: 0 10px 18px rgba(87, 214, 166, 0.35);
+    }
+
+    .next-level-btn.show {
+      display: inline-block;
+    }
+
+    @media (max-width: 420px) {
+      .app {
+        padding: 20px 14px 22px;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      .stat-value {
+        font-size: 1.15rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="start-screen" id="startScreen">
+      <h1>Catch the Box</h1>
+      <p class="start-text">Tap the box as many times as you can before time runs out.</p>
+      <p class="difficulty-title">Choose a level:</p>
+      <div class="difficulty-options">
+        <label class="difficulty-option">
+          <input type="radio" name="difficulty" value="easy">
+          <span class="difficulty-label">Easy</span>
+        </label>
+        <label class="difficulty-option">
+          <input type="radio" name="difficulty" value="medium" checked>
+          <span class="difficulty-label">Medium</span>
+        </label>
+        <label class="difficulty-option">
+          <input type="radio" name="difficulty" value="hard">
+          <span class="difficulty-label">Hard</span>
+        </label>
+      </div>
+      <button class="restart-btn start-btn" id="startBtn">Start Game</button>
+    </div>
+
+    <div class="game-screen" id="gameScreen">
+      <h1>Catch the Box</h1>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-label">Score</span>
+          <span class="stat-value" id="score">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Best</span>
+          <span class="stat-value" id="highScore">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Time</span>
+          <span class="stat-value"><span id="timer">20</span>s</span>
+        </div>
+      </div>
+
+      <div class="game-area" id="gameArea">
+        <button class="box" id="box" aria-label="Catch the box"></button>
+      </div>
+
+      <div class="message" id="message"></div>
+    </div>
+
+    <div class="game-over-screen" id="gameOverScreen">
+      <h1>Catch the Box</h1>
+      <div class="result-card">
+        <h2 class="result-title">Round Over</h2>
+        <div class="high-score-popup" id="highScorePopup">Amazing! You got a new high score!</div>
+        <p class="celebration-message" id="celebrationMessage"></p>
+        <p class="result-line">Final Score: <span id="finalScore">0</span></p>
+        <p class="result-line">High Score: <span id="finalHighScore">0</span></p>
+        <p class="result-line" id="nextLevelText"></p>
+        <div class="result-actions">
+          <button class="restart-btn next-level-btn" id="nextLevelBtn">Try Medium</button>
+          <button class="restart-btn play-again-btn" id="restartBtn">Play Again</button>
+          <button class="restart-btn menu-btn" id="menuBtn">Back to Menu</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const startScreen = document.getElementById("startScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const startBtn = document.getElementById("startBtn");
+    const gameArea = document.getElementById("gameArea");
+    const box = document.getElementById("box");
+    const scoreText = document.getElementById("score");
+    const highScoreText = document.getElementById("highScore");
+    const timerText = document.getElementById("timer");
+    const message = document.getElementById("message");
+    const finalScoreText = document.getElementById("finalScore");
+    const finalHighScoreText = document.getElementById("finalHighScore");
+    const celebrationMessage = document.getElementById("celebrationMessage");
+    const highScorePopup = document.getElementById("highScorePopup");
+    const nextLevelText = document.getElementById("nextLevelText");
+    const nextLevelBtn = document.getElementById("nextLevelBtn");
+    const menuBtn = document.getElementById("menuBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const difficultyInputs = document.querySelectorAll('input[name="difficulty"]');
+
+    const gameDuration = 20;
+    const highScoreKey = "catchTheBoxHighScore";
+    const goodScore = 10;
+    const difficulties = {
+      easy: 68,
+      medium: 56,
+      hard: 44
+    };
+
+    let score = 0;
+    let timeLeft = gameDuration;
+    let timerId = null;
+    let gameRunning = false;
+    let highScore = Number(localStorage.getItem(highScoreKey)) || 0;
+    let audioContext = null;
+    let boxSize = difficulties.medium;
+
+    highScoreText.textContent = highScore;
+    finalHighScoreText.textContent = highScore;
+
+    function playSound(frequency, duration) {
+      if (!audioContext) {
+        audioContext = new window.AudioContext();
+      }
+
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = frequency;
+      oscillator.type = "sine";
+
+      gainNode.gain.setValueAtTime(0.12, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + duration);
+    }
+
+    function moveBox() {
+      const maxX = gameArea.clientWidth - boxSize;
+      const maxY = gameArea.clientHeight - boxSize;
+
+      const randomX = Math.floor(Math.random() * (maxX + 1));
+      const randomY = Math.floor(Math.random() * (maxY + 1));
+
+      box.style.left = randomX + "px";
+      box.style.top = randomY + "px";
+    }
+
+    function updateDifficulty() {
+      const selectedDifficulty = document.querySelector('input[name="difficulty"]:checked').value;
+      boxSize = difficulties[selectedDifficulty];
+      box.style.width = boxSize + "px";
+      box.style.height = boxSize + "px";
+    }
+
+    function setDifficulty(level) {
+      const selectedInput = document.querySelector('input[name="difficulty"][value="' + level + '"]');
+      selectedInput.checked = true;
+      updateDifficulty();
+    }
+
+    function showMenu() {
+      gameRunning = false;
+      clearInterval(timerId);
+      startScreen.style.display = "block";
+      gameScreen.classList.remove("show");
+      gameOverScreen.classList.remove("show");
+      box.style.display = "block";
+      message.textContent = "";
+    }
+
+    function showNextLevelOption() {
+      const selectedDifficulty = document.querySelector('input[name="difficulty"]:checked').value;
+
+      nextLevelBtn.classList.remove("show");
+      nextLevelText.textContent = "";
+
+      if (selectedDifficulty === "easy") {
+        nextLevelText.textContent = "Ready for more challenge? Try Medium next.";
+        nextLevelBtn.textContent = "Try Medium";
+        nextLevelBtn.dataset.level = "medium";
+        nextLevelBtn.classList.add("show");
+      }
+
+      if (selectedDifficulty === "medium") {
+        nextLevelText.textContent = "Nice job! Try Hard for a bigger challenge.";
+        nextLevelBtn.textContent = "Try Hard";
+        nextLevelBtn.dataset.level = "hard";
+        nextLevelBtn.classList.add("show");
+      }
+    }
+
+    function updateCelebration(isNewHighScore) {
+      celebrationMessage.classList.remove("show");
+      highScorePopup.classList.remove("show");
+      celebrationMessage.textContent = "";
+
+      if (score >= goodScore) {
+        celebrationMessage.textContent = "Awesome job! A score of 10 or more is a great round!";
+        celebrationMessage.classList.add("show");
+      }
+
+      if (isNewHighScore) {
+        highScorePopup.classList.add("show");
+      }
+    }
+
+    function endGame() {
+      gameRunning = false;
+      clearInterval(timerId);
+      playSound(220, 0.4);
+      const previousHighScore = highScore;
+
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem(highScoreKey, highScore);
+        highScoreText.textContent = highScore;
+      }
+
+      box.style.display = "none";
+      gameScreen.classList.remove("show");
+      gameOverScreen.classList.add("show");
+      finalScoreText.textContent = score;
+      finalHighScoreText.textContent = highScore;
+      updateCelebration(score > previousHighScore);
+      showNextLevelOption();
+    }
+
+    function startGame() {
+      updateDifficulty();
+      startScreen.style.display = "none";
+      gameOverScreen.classList.remove("show");
+      gameScreen.classList.add("show");
+      score = 0;
+      timeLeft = gameDuration;
+      gameRunning = true;
+
+      scoreText.textContent = score;
+      highScoreText.textContent = highScore;
+      timerText.textContent = timeLeft;
+      message.textContent = "";
+      box.style.display = "block";
+
+      moveBox();
+
+      clearInterval(timerId);
+      timerId = setInterval(function () {
+        timeLeft -= 1;
+        timerText.textContent = timeLeft;
+
+        if (timeLeft === 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    box.addEventListener("click", function () {
+      if (!gameRunning) {
+        return;
+      }
+
+      playSound(660, 0.08);
+      score += 1;
+      scoreText.textContent = score;
+      moveBox();
+    });
+
+    startBtn.addEventListener("click", startGame);
+    restartBtn.addEventListener("click", startGame);
+    menuBtn.addEventListener("click", showMenu);
+    nextLevelBtn.addEventListener("click", function () {
+      setDifficulty(nextLevelBtn.dataset.level);
+      startGame();
+    });
+
+    difficultyInputs.forEach(function (input) {
+      input.addEventListener("change", updateDifficulty);
+    });
+
+    updateDifficulty();
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js");
+      });
+    }
+
+  </script>
+</body>
+</html>
